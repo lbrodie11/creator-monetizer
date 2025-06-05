@@ -35,9 +35,18 @@ export const useUser = () => {
       setError(null)
       
       const userService = UserService.getInstance()
-      const signedInUser = await userService.signInWithGoogle()
-      setUser(signedInUser)
+      let signedInUser: User
       
+      // Check if we're on the options page
+      if (window.location.pathname.includes('options.html')) {
+        // Use popup auth on options page
+        signedInUser = await userService.signInWithGoogleOnOptionsPage()
+      } else {
+        // Use tab redirect method from popup
+        signedInUser = await userService.signInWithGoogle()
+      }
+      
+      setUser(signedInUser)
       return signedInUser
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to sign in"

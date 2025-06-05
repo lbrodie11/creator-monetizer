@@ -1,6 +1,6 @@
 
 import { 
-  signInWithPopup, 
+  signInWithPopup,
   GoogleAuthProvider, 
   signOut as firebaseSignOut,
   type User as FirebaseUser
@@ -34,37 +34,121 @@ export class UserService {
 
   async signInWithGoogle(): Promise<User> {
     try {
-      const provider = new GoogleAuthProvider()
-      const result = await signInWithPopup(auth, provider)
-      const firebaseUser = result.user
-
-      // Check if user exists in Firestore
-      const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
-      
-      if (!userDoc.exists()) {
-        // Create new user document
-        const newUser: User = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email!,
-          displayName: firebaseUser.displayName || undefined,
-          affiliateSettings: {},
-          isPro: false,
-          createdAt: Date.now()
-        }
-
-        await setDoc(doc(db, "users", firebaseUser.uid), newUser)
-        this.currentUser = newUser
-        return newUser
+      // For Chrome extensions, redirect to options page for authentication
+      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+        // Close popup and open options page for auth
+        chrome.runtime.openOptionsPage()
+        
+        // Return a promise that resolves when auth completes
+        return new Promise((resolve, reject) => {
+          // Listen for auth completion message
+          const onMessage = (message: any) => {
+            if (message.type === 'AUTH_SUCCESS') {
+              chrome.runtime.onMessage.removeListener(onMessage)
+              this.currentUser = message.user
+              resolve(message.user)
+            } else if (message.type === 'AUTH_ERROR') {
+              chrome.runtime.onMessage.removeListener(onMessage)
+              reject(new Error(message.error))
+            }
+          }
+          
+          chrome.runtime.onMessage.addListener(onMessage)
+          
+          // Timeout after 5 minutes
+          setTimeout(() => {
+            chrome.runtime.onMessage.removeListener(onMessage)
+            reject(new Error('Authentication timeout'))
+          }, 300000)
+        })
       } else {
-        // Return existing user
-        const userData = userDoc.data() as User
-        this.currentUser = userData
-        return userData
+        throw new Error("Google Sign-In is only supported in Chrome extension environment")
       }
     } catch (error) {
       console.error("Error signing in with Google:", error)
       throw error
     }
+  }
+
+  // Method to be called from options page
+  async signInWithGoogleOnOptionsPage(): Promise<User> {
+    try {
+      const provider = new GoogleAuthProvider()
+      
+      // Set custom parameters for better UX
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      })
+      
+      // Try the popup approach on the options page (which has more space)
+      const result = await signInWithPopup(auth, provider)
+      const firebaseUser = result.user
+      
+      const user = await this.handleAuthenticatedUser(firebaseUser)
+      
+      // Notify popup that auth completed
+      chrome.runtime.sendMessage({
+        type: 'AUTH_SUCCESS',
+        user: user
+      })
+      
+      return user
+    } catch (error) {
+      console.error("Error signing in with Google:", error)
+      
+      // Notify popup that auth failed
+      chrome.runtime.sendMessage({
+        type: 'AUTH_ERROR',
+        error: error.message
+      })
+      
+      throw error
+    }
+  }
+
+  private async handleAuthenticatedUser(firebaseUser: FirebaseUser): Promise<User> {
+    // Check if user exists in Firestore
+    const userDoc = await getDoc(doc(db, "users", firebaseUser.uid))
+    
+    if (!userDoc.exists()) {
+      // Create new user document
+      const newUser: User = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email!,
+        displayName: firebaseUser.displayName || undefined,
+        affiliateSettings: {},
+        isPro: false,
+        createdAt: Date.now()
+      }
+
+      await setDoc(doc(db, "users", firebaseUser.uid), newUser)
+      this.currentUser = newUser
+      return newUser
+    } else {
+      // Return existing user
+      const userData = userDoc.data() as User
+      this.currentUser = userData
+      return userData
+    }
+  }
+
+  async checkAuthState(): Promise<User | null> {
+    return new Promise((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+        unsubscribe()
+        if (firebaseUser) {
+          try {
+            const user = await this.handleAuthenticatedUser(firebaseUser)
+            resolve(user)
+          } catch (error) {
+            console.error("Error loading user:", error)
+            resolve(null)
+          }
+        } else {
+          resolve(null)
+        }
+      })
+    })
   }
 
   async signOut(): Promise<void> {

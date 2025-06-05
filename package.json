@@ -28,6 +28,9 @@
   "manifest": {
     "host_permissions": [
       "*://*.google.com/*",
+      "*://*.googleapis.com/*",
+      "*://*.gstatic.com/*",
+      "*://*.firebaseapp.com/*",
       "*://*.wordpress.com/*",
       "*://*.wordpress.org/*",
       "*://*.facebook.com/*",
@@ -46,10 +49,20 @@
     "permissions": [
       "storage",
       "activeTab",
-      "clipboardRead"
+      "clipboardRead",
+      "identity"
     ],
     "action": {
       "default_popup": "popup.html"
-    }
+    },
+    "content_security_policy": {
+      "extension_pages": "script-src 'self' https://apis.google.com https://www.gstatic.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com; object-src 'self'"
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["*.js", "*.css", "*.html"],
+        "matches": ["<all_urls>"]
+      }
+    ]
   }
 }
