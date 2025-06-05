@@ -1,4 +1,4 @@
-import { signInWithCredential, GoogleAuthProvider, type User as FirebaseUser } from "firebase/auth"
+import { signInWithCustomToken, type User as FirebaseUser } from "firebase/auth"
 import { auth } from "./firebase-config"
 
 export class ChromeAuthService {
@@ -21,7 +21,7 @@ export class ChromeAuthService {
       chrome.identity.getAuthToken(
         { 
           interactive: true,
-          scopes: ['email', 'profile']
+          scopes: ['email', 'profile', 'openid']
         },
         async (token) => {
           if (chrome.runtime.lastError) {
@@ -35,20 +35,18 @@ export class ChromeAuthService {
           }
 
           try {
-            // Create Firebase credential from Chrome identity token
-            const credential = GoogleAuthProvider.credential(null, token)
-            const result = await signInWithCredential(auth, credential)
-            resolve(result.user)
+            // Get user info from Google
+            const userInfo = await this.getUserInfo(token)
+            
+            // For now, we'll use a simplified approach without server-side token verification
+            // In production, you should verify this token server-side and create a custom Firebase token
+            console.log("User info received:", userInfo)
+            
+            // For demo purposes, we'll throw an error with instructions
+            reject(new Error("Chrome Identity API authenticated successfully, but custom token generation requires server-side implementation. Please use the Firebase popup method instead."))
+            
           } catch (error) {
-            // If direct credential doesn't work, try getting user info from Google API
-            try {
-              const userInfo = await this.getUserInfo(token)
-              // For now, we'll create a custom token approach
-              // This is a simplified version - in production you'd want to verify the token server-side
-              reject(new Error("Chrome identity integration needs server-side token verification"))
-            } catch (apiError) {
-              reject(apiError)
-            }
+            reject(error)
           }
         }
       )

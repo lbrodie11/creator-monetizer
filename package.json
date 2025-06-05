@@ -50,7 +50,8 @@
       "storage",
       "activeTab",
       "clipboardRead",
-      "identity"
+      "identity",
+      "offscreen"
     ],
     "action": {
       "default_popup": "popup.html"

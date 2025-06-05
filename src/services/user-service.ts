@@ -1,8 +1,6 @@
 
 import { 
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult, 
   GoogleAuthProvider, 
   signOut as firebaseSignOut,
   type User as FirebaseUser
@@ -80,25 +78,19 @@ export class UserService {
         prompt: 'select_account'
       })
       
-      // Try popup first, fall back to redirect if it fails
-      try {
-        const result = await signInWithPopup(auth, provider)
-        const user = await this.handleAuthenticatedUser(result.user)
-        
-        // Notify popup that auth completed
+      // Use popup auth which is supported in web-extension module
+      const result = await signInWithPopup(auth, provider)
+      const user = await this.handleAuthenticatedUser(result.user)
+      
+      // Notify popup that auth completed
+      if (chrome?.runtime?.sendMessage) {
         chrome.runtime.sendMessage({
           type: 'AUTH_SUCCESS',
           user: user
         })
-        
-        return user
-      } catch (popupError) {
-        console.warn("Popup auth failed, trying redirect:", popupError)
-        
-        // If popup fails, try redirect
-        await signInWithRedirect(auth, provider)
-        throw new Error("Redirecting to Google sign-in...")
       }
+      
+      return user
       
     } catch (error) {
       console.error("Error signing in with Google:", error)
@@ -142,29 +134,8 @@ export class UserService {
   }
 
   async checkAuthState(): Promise<User | null> {
-    return new Promise(async (resolve) => {
-      try {
-        // First check for redirect result
-        const redirectResult = await getRedirectResult(auth)
-        if (redirectResult) {
-          const user = await this.handleAuthenticatedUser(redirectResult.user)
-          
-          // Notify popup that auth completed
-          if (chrome?.runtime?.sendMessage) {
-            chrome.runtime.sendMessage({
-              type: 'AUTH_SUCCESS',
-              user: user
-            })
-          }
-          
-          resolve(user)
-          return
-        }
-      } catch (error) {
-        console.error("Error handling redirect result:", error)
-      }
-
-      // Then check normal auth state
+    return new Promise((resolve) => {
+      // Check normal auth state using web-extension module
       const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
         unsubscribe()
         if (firebaseUser) {
