@@ -76,18 +76,29 @@ export class UserService {
   async signInWithGoogleOnOptionsPage(): Promise<User> {
     try {
       const provider = new GoogleAuthProvider()
-      
-      // Use redirect instead of popup to avoid CSP issues
       provider.setCustomParameters({
         prompt: 'select_account'
       })
       
-      // Use redirect auth which doesn't require external scripts in CSP
-      await signInWithRedirect(auth, provider)
-      
-      // This won't execute immediately as the page will redirect
-      // The auth state will be handled by onAuthStateChanged listener
-      throw new Error("Redirecting to Google sign-in...")
+      // Try popup first, fall back to redirect if it fails
+      try {
+        const result = await signInWithPopup(auth, provider)
+        const user = await this.handleAuthenticatedUser(result.user)
+        
+        // Notify popup that auth completed
+        chrome.runtime.sendMessage({
+          type: 'AUTH_SUCCESS',
+          user: user
+        })
+        
+        return user
+      } catch (popupError) {
+        console.warn("Popup auth failed, trying redirect:", popupError)
+        
+        // If popup fails, try redirect
+        await signInWithRedirect(auth, provider)
+        throw new Error("Redirecting to Google sign-in...")
+      }
       
     } catch (error) {
       console.error("Error signing in with Google:", error)
