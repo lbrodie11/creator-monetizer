@@ -1,6 +1,8 @@
 
 import { 
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult, 
   GoogleAuthProvider, 
   signOut as firebaseSignOut,
   type User as FirebaseUser
@@ -75,32 +77,28 @@ export class UserService {
     try {
       const provider = new GoogleAuthProvider()
       
-      // Set custom parameters for better UX
+      // Use redirect instead of popup to avoid CSP issues
       provider.setCustomParameters({
         prompt: 'select_account'
       })
       
-      // Try the popup approach on the options page (which has more space)
-      const result = await signInWithPopup(auth, provider)
-      const firebaseUser = result.user
+      // Use redirect auth which doesn't require external scripts in CSP
+      await signInWithRedirect(auth, provider)
       
-      const user = await this.handleAuthenticatedUser(firebaseUser)
+      // This won't execute immediately as the page will redirect
+      // The auth state will be handled by onAuthStateChanged listener
+      throw new Error("Redirecting to Google sign-in...")
       
-      // Notify popup that auth completed
-      chrome.runtime.sendMessage({
-        type: 'AUTH_SUCCESS',
-        user: user
-      })
-      
-      return user
     } catch (error) {
       console.error("Error signing in with Google:", error)
       
       // Notify popup that auth failed
-      chrome.runtime.sendMessage({
-        type: 'AUTH_ERROR',
-        error: error.message
-      })
+      if (chrome?.runtime?.sendMessage) {
+        chrome.runtime.sendMessage({
+          type: 'AUTH_ERROR',
+          error: error.message
+        })
+      }
       
       throw error
     }
@@ -133,7 +131,29 @@ export class UserService {
   }
 
   async checkAuthState(): Promise<User | null> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      try {
+        // First check for redirect result
+        const redirectResult = await getRedirectResult(auth)
+        if (redirectResult) {
+          const user = await this.handleAuthenticatedUser(redirectResult.user)
+          
+          // Notify popup that auth completed
+          if (chrome?.runtime?.sendMessage) {
+            chrome.runtime.sendMessage({
+              type: 'AUTH_SUCCESS',
+              user: user
+            })
+          }
+          
+          resolve(user)
+          return
+        }
+      } catch (error) {
+        console.error("Error handling redirect result:", error)
+      }
+
+      // Then check normal auth state
       const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
         unsubscribe()
         if (firebaseUser) {
