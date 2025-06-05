@@ -10,6 +10,8 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@plasmohq/storage": "^1.15.0",
+    "firebase": "^11.8.1",
     "plasmo": "0.90.5",
     "react": "18.2.0",
     "react-dom": "18.2.0"
@@ -25,7 +27,29 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://*/*"
-    ]
+      "*://*.google.com/*",
+      "*://*.wordpress.com/*",
+      "*://*.wordpress.org/*",
+      "*://*.facebook.com/*",
+      "*://*.twitter.com/*",
+      "*://*.x.com/*",
+      "*://*.linkedin.com/*",
+      "*://*.medium.com/*",
+      "*://*.substack.com/*",
+      "*://*.notion.so/*",
+      "*://*.amazon.com/*",
+      "*://*.amazon.co.uk/*",
+      "*://*.amazon.ca/*",
+      "*://*.ebay.com/*",
+      "*://*.booking.com/*"
+    ],
+    "permissions": [
+      "storage",
+      "activeTab",
+      "clipboardRead"
+    ],
+    "action": {
+      "default_popup": "popup.html"
+    }
   }
 }
