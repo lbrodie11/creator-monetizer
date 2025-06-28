@@ -84,7 +84,7 @@ function OptionsPage() {
       }
     `;
     document.head.appendChild(styleElement);
-    
+
     return () => {
       document.head.removeChild(styleElement);
     };
@@ -142,20 +142,20 @@ function OptionsPage() {
 
     setIsSaving(true)
     setSaveMessage("")
-    
+
     try {
       await sendMessage({
         action: MessageActions.UPDATE_SETTINGS,
         settings: affiliateSettings
       })
-      
+
       setSaveMessage("Settings saved successfully!")
       setTimeout(() => setSaveMessage(""), 3000)
     } catch (error) {
       console.error("Error saving settings:", error)
       setSaveMessage("Error saving settings")
     }
-    
+
     setIsSaving(false)
   }
 
@@ -166,34 +166,34 @@ function OptionsPage() {
   // Test authentication function
   const testAuthentication = async () => {
     setTestResults("🧪 Testing authentication flow...")
-    
+
     try {
       // Test Chrome Identity API
       if (!chrome?.identity) {
         setTestResults("❌ Chrome Identity API not available")
         return
       }
-      
+
       setTestResults("✅ Chrome Identity API available\n🧪 Testing configuration...")
-      
+
       // Test Firebase config first
       const firebaseConfig = {
         apiKey: process.env.PLASMO_PUBLIC_FIREBASE_API_KEY,
         authDomain: process.env.PLASMO_PUBLIC_FIREBASE_AUTH_DOMAIN,
         projectId: process.env.PLASMO_PUBLIC_FIREBASE_PROJECT_ID
       }
-      
+
       setTestResults(prev => prev + `\n\n🔧 Firebase Configuration:
 Project ID: ${firebaseConfig.projectId}
 Auth Domain: ${firebaseConfig.authDomain}
 API Key: ${firebaseConfig.apiKey ? '✅ Present' : '❌ Missing'}`)
-      
+
       // Test extension setup
       if (chrome.runtime.id) {
         setTestResults(prev => prev + `\n\n🆔 Extension Details:
 Extension ID: ${chrome.runtime.id}
 Status: Loaded and active`)
-        
+
         // Add corrected setup instructions
         setTestResults(prev => prev + `\n\n🔧 SETUP REQUIRED (If authentication fails):
         
@@ -211,10 +211,10 @@ Status: Loaded and active`)
 ❌ DO NOT add chrome-extension:// to Google Cloud Console!
 ✅ ONLY add it to Firebase authorized domains!`)
       }
-      
+
       // Test token retrieval
       setTestResults(prev => prev + "\n\n🔍 Testing token retrieval...")
-      
+
       chrome.identity.getAuthToken({
         interactive: false,
         scopes: ['email', 'profile', 'openid']
@@ -229,7 +229,7 @@ Status: Loaded and active`)
           setTestResults(prev => prev + "\n🎉 Authentication should work properly!")
         }
       })
-      
+
     } catch (error) {
       setTestResults(`❌ Test error: ${error.message}`)
     }
@@ -279,19 +279,19 @@ Status: Loaded and active`)
         animation: "gentleFloat 18s ease-in-out infinite",
         zIndex: 1
       }}>☁️</div>
-      
-      <div style={{ 
-        maxWidth: 1000, 
+
+      <div style={{
+        maxWidth: 1000,
         margin: "0 auto",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         position: "relative",
         zIndex: 2
       }}>
         {/* Header Section */}
-        <div style={{ 
+        <div style={{
           background: "linear-gradient(135deg, #fdfcf8 0%, #f5f2ed 100%)",
-          borderRadius: 24, 
-          padding: 48, 
+          borderRadius: 24,
+          padding: 48,
           marginBottom: 40,
           boxShadow: "0 16px 48px rgba(143, 170, 150, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
           textAlign: "center",
@@ -316,24 +316,24 @@ Status: Loaded and active`)
             opacity: 0.15,
             transform: "rotate(25deg)"
           }}>🍄</div>
-          
+
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-            <div style={{ 
-              fontSize: 56, 
+            <div style={{
+              fontSize: 56,
               marginRight: 20,
               filter: "drop-shadow(0 4px 8px rgba(143, 170, 150, 0.3))"
             }}>💰</div>
             <div>
-              <h1 className="storybook-text" style={{ 
-                margin: 0, 
-                fontSize: 42, 
-                fontWeight: "600", 
+              <h1 className="storybook-text" style={{
+                margin: 0,
+                fontSize: 42,
+                fontWeight: "600",
                 color: "#3d5a3d",
                 textShadow: "0 2px 4px rgba(143, 170, 150, 0.1)"
               }}>Creator Monetizer</h1>
-              <p className="clean-text" style={{ 
-                margin: "12px 0 0 0", 
-                color: "#6b7c6b", 
+              <p className="clean-text" style={{
+                margin: "12px 0 0 0",
+                color: "#6b7c6b",
                 fontSize: 18,
                 fontStyle: "italic"
               }}>A magical place to configure your affiliate programs ✨</p>
@@ -342,10 +342,10 @@ Status: Loaded and active`)
 
           {!user ? (
             <div style={{ marginTop: 40 }}>
-              <p className="storybook-text" style={{ 
-                marginBottom: 32, 
-                fontSize: 18, 
-                color: "#5a6b5a", 
+              <p className="storybook-text" style={{
+                marginBottom: 32,
+                fontSize: 18,
+                color: "#5a6b5a",
                 lineHeight: "1.8",
                 maxWidth: 480,
                 margin: "0 auto 32px auto"
@@ -380,7 +380,7 @@ Status: Loaded and active`)
               >
                 🌟 Sign in with Google
               </button>
-              
+
               {/* Test Authentication Button */}
               <div style={{ marginTop: 24 }}>
                 <button
@@ -420,10 +420,10 @@ Status: Loaded and active`)
               </div>
             </div>
           ) : (
-            <div style={{ 
-              marginTop: 32, 
-              padding: 24, 
-              background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)", 
+            <div style={{
+              marginTop: 32,
+              padding: 24,
+              background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)",
               borderRadius: 20,
               border: "2px solid #d4d9c7",
               boxShadow: "inset 0 2px 4px rgba(143, 170, 150, 0.1)"
@@ -471,10 +471,10 @@ Status: Loaded and active`)
         </div>
 
         {/* Affiliate Settings Section */}
-        <div className="whimsical-shadow" style={{ 
+        <div className="whimsical-shadow" style={{
           background: "linear-gradient(135deg, #fdfcf8 0%, #f5f2ed 100%)",
-          borderRadius: 24, 
-          padding: 48, 
+          borderRadius: 24,
+          padding: 48,
           marginBottom: 40,
           border: "3px solid #e8f2ea",
           position: "relative",
@@ -497,23 +497,23 @@ Status: Loaded and active`)
             opacity: 0.2,
             transform: "rotate(-20deg)"
           }}>🦋</div>
-          
+
           <div style={{ marginBottom: 40, textAlign: "center" }}>
-            <h2 className="storybook-text" style={{ 
-              fontSize: 32, 
-              marginBottom: 16, 
-              fontWeight: "600", 
+            <h2 className="storybook-text" style={{
+              fontSize: 32,
+              marginBottom: 16,
+              fontWeight: "600",
               color: "#3d5a3d",
               textShadow: "0 2px 4px rgba(143, 170, 150, 0.1)"
             }}>
               🌟 Affiliate Program Settings
             </h2>
-            <p className="clean-text" style={{ 
-              color: "#6b7c6b", 
-              marginBottom: 0, 
-              fontSize: 18, 
-              lineHeight: "1.7", 
-              maxWidth: 640, 
+            <p className="clean-text" style={{
+              color: "#6b7c6b",
+              marginBottom: 0,
+              fontSize: 18,
+              lineHeight: "1.7",
+              maxWidth: 640,
               margin: "0 auto",
               fontStyle: "italic"
             }}>
@@ -523,26 +523,26 @@ Status: Loaded and active`)
 
           <div style={{ display: "grid", gap: 32, gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))" }}>
             {AFFILIATE_PROGRAMS.map(program => (
-              <div key={program.id} className="ghibli-card" style={{ 
-                borderRadius: 20, 
+              <div key={program.id} className="ghibli-card" style={{
+                borderRadius: 20,
                 padding: 28,
                 transition: "all 0.3s ease",
                 position: "relative"
               }}
-              onMouseOver={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-4px) scale(1.01)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 16px 40px rgba(143, 170, 150, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5)";
-                (e.currentTarget as HTMLElement).style.borderColor = "#c1d4c1";
-              }}
-              onMouseOut={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "translateY(0) scale(1)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(143, 170, 150, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3)";
-                (e.currentTarget as HTMLElement).style.borderColor = "#d4d9c7";
-              }}
+                onMouseOver={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-4px) scale(1.01)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 16px 40px rgba(143, 170, 150, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.5)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "#c1d4c1";
+                }}
+                onMouseOut={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(0) scale(1)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(143, 170, 150, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "#d4d9c7";
+                }}
               >
                 <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
-                  <div style={{ 
-                    fontSize: 32, 
+                  <div style={{
+                    fontSize: 32,
                     marginRight: 18,
                     padding: 12,
                     background: "linear-gradient(135deg, #fdfcf8 0%, #f0f4f1 100%)",
@@ -553,19 +553,19 @@ Status: Loaded and active`)
                     {program.icon}
                   </div>
                   <div>
-                    <h3 className="storybook-text" style={{ 
-                      margin: 0, 
-                      fontSize: 20, 
-                      fontWeight: "600", 
+                    <h3 className="storybook-text" style={{
+                      margin: 0,
+                      fontSize: 20,
+                      fontWeight: "600",
                       color: "#3d5a3d",
                       marginBottom: 4
                     }}>
                       {program.name}
                     </h3>
                     <div className="clean-text" style={{ fontSize: 13, color: "#6b7c6b", marginTop: 4 }}>
-                      Parameter: <code style={{ 
-                        background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)", 
-                        padding: "3px 8px", 
+                      Parameter: <code style={{
+                        background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)",
+                        padding: "3px 8px",
                         borderRadius: 8,
                         fontSize: 12,
                         border: "1px solid #d4d9c7",
@@ -575,7 +575,7 @@ Status: Loaded and active`)
                     </div>
                   </div>
                 </div>
-                
+
                 <div style={{ marginBottom: 20 }}>
                   <input
                     type="text"
@@ -600,23 +600,23 @@ Status: Loaded and active`)
                       boxSizing: "border-box",
                       boxShadow: "inset 0 2px 4px rgba(143, 170, 150, 0.1)"
                     }}
-                  onFocus={(e) => {
-                    if (!validationErrors[program.id] || validationErrors[program.id].isValid) {
-                      (e.target as HTMLInputElement).style.borderColor = "#8faa96";
-                      (e.target as HTMLInputElement).style.boxShadow = "0 0 0 4px rgba(143, 170, 150, 0.15), inset 0 2px 4px rgba(143, 170, 150, 0.1)";
-                    }
-                  }}
-                  onBlur={(e) => {
-                    (e.target as HTMLInputElement).style.borderColor = validationErrors[program.id] && !validationErrors[program.id].isValid ? "#d69e2e" : "#d4d9c7";
-                    (e.target as HTMLInputElement).style.boxShadow = "inset 0 2px 4px rgba(143, 170, 150, 0.1)";
-                  }}
-                />
+                    onFocus={(e) => {
+                      if (!validationErrors[program.id] || validationErrors[program.id].isValid) {
+                        (e.target as HTMLInputElement).style.borderColor = "#8faa96";
+                        (e.target as HTMLInputElement).style.boxShadow = "0 0 0 4px rgba(143, 170, 150, 0.15), inset 0 2px 4px rgba(143, 170, 150, 0.1)";
+                      }
+                    }}
+                    onBlur={(e) => {
+                      (e.target as HTMLInputElement).style.borderColor = validationErrors[program.id] && !validationErrors[program.id].isValid ? "#d69e2e" : "#d4d9c7";
+                      (e.target as HTMLInputElement).style.boxShadow = "inset 0 2px 4px rgba(143, 170, 150, 0.1)";
+                    }}
+                  />
                 </div>
-                
+
                 {/* Validation feedback */}
                 {validationErrors[program.id] && !validationErrors[program.id].isValid && (
-                  <div className="clean-text" style={{ 
-                    fontSize: 13, 
+                  <div className="clean-text" style={{
+                    fontSize: 13,
                     color: "#8b4513",
                     marginTop: 12,
                     padding: 16,
@@ -636,11 +636,11 @@ Status: Loaded and active`)
                     )}
                   </div>
                 )}
-                
+
                 {/* Valid state indicator */}
                 {validationErrors[program.id] && validationErrors[program.id].isValid && affiliateSettings[program.id] && (
-                  <div className="clean-text" style={{ 
-                    fontSize: 13, 
+                  <div className="clean-text" style={{
+                    fontSize: 13,
                     color: "#2f5233",
                     marginTop: 12,
                     padding: 12,
@@ -656,11 +656,11 @@ Status: Loaded and active`)
                     <span className="storybook-text" style={{ fontWeight: "500" }}>Perfect! Your {program.name} ID is ready to work its magic</span>
                   </div>
                 )}
-                
+
                 {/* Examples */}
-                <div className="clean-text" style={{ 
-                  fontSize: 12, 
-                  color: "#6b7c6b", 
+                <div className="clean-text" style={{
+                  fontSize: 12,
+                  color: "#6b7c6b",
                   marginTop: 16,
                   padding: 16,
                   background: "linear-gradient(135deg, #f5f8f5 0%, #e8f2ea 100%)",
@@ -671,9 +671,9 @@ Status: Loaded and active`)
                   <div className="storybook-text" style={{ fontWeight: "600", marginBottom: 8, color: "#3d5a3d", fontSize: 13 }}>
                     🌟 Example ID:
                   </div>
-                  <code style={{ 
-                    background: "linear-gradient(135deg, #fdfcf8 0%, #f0f4f1 100%)", 
-                    padding: "6px 12px", 
+                  <code style={{
+                    background: "linear-gradient(135deg, #fdfcf8 0%, #f0f4f1 100%)",
+                    padding: "6px 12px",
                     borderRadius: 8,
                     fontSize: 11,
                     fontFamily: "Monaco, Consolas, 'Courier New', monospace",
@@ -684,16 +684,16 @@ Status: Loaded and active`)
                     boxShadow: "0 2px 4px rgba(143, 170, 150, 0.1)"
                   }}>
                     {program.id === "amazon" ? "yourname-20" :
-                     program.id === "ebay" ? "5338177094" :
-                     program.id === "booking" ? "812345" :
-                     program.id === "aliexpress" ? "mm_12345678_0_0" :
-                     program.id === "walmart" ? "WL123456789" :
-                     program.id === "target" ? "123456" :
-                     program.id === "shareasale" ? "12345" :
-                     program.id === "cj" ? "1234567" :
-                     program.id === "impact" ? "abc123xyz" :
-                     program.id === "flexoffers" ? "12345" :
-                     "your-affiliate-id"}
+                      program.id === "ebay" ? "5338177094" :
+                        program.id === "booking" ? "812345" :
+                          program.id === "aliexpress" ? "mm_12345678_0_0" :
+                            program.id === "walmart" ? "WL123456789" :
+                              program.id === "target" ? "123456" :
+                                program.id === "shareasale" ? "12345" :
+                                  program.id === "cj" ? "1234567" :
+                                    program.id === "impact" ? "abc123xyz" :
+                                      program.id === "flexoffers" ? "12345" :
+                                        "your-affiliate-id"}
                   </code>
                 </div>
               </div>
@@ -736,9 +736,9 @@ Status: Loaded and active`)
             >
               {isSaving ? "🌱 Saving your magic..." : "✨ Save Magical Settings"}
             </button>
-            
+
             {saveMessage && (
-              <div className="clean-text" style={{ 
+              <div className="clean-text" style={{
                 color: saveMessage.includes("Error") ? "#8b4513" : "#2f5233",
                 fontSize: 15,
                 fontWeight: "600",
@@ -764,10 +764,10 @@ Status: Loaded and active`)
 
         {/* Recent Conversions Section */}
         {user && recentConversions.length > 0 && (
-          <div className="whimsical-shadow" style={{ 
-            background: "linear-gradient(135deg, #fdfcf8 0%, #f5f2ed 100%)", 
-            borderRadius: 24, 
-            padding: 48, 
+          <div className="whimsical-shadow" style={{
+            background: "linear-gradient(135deg, #fdfcf8 0%, #f5f2ed 100%)",
+            borderRadius: 24,
+            padding: 48,
             marginBottom: 40,
             border: "3px solid #e8f2ea",
             position: "relative",
@@ -790,30 +790,30 @@ Status: Loaded and active`)
               opacity: 0.15,
               transform: "rotate(-10deg)"
             }}>💫</div>
-            
-            <h2 className="storybook-text" style={{ 
-              fontSize: 32, 
-              marginBottom: 32, 
-              fontWeight: "600", 
+
+            <h2 className="storybook-text" style={{
+              fontSize: 32,
+              marginBottom: 32,
+              fontWeight: "600",
               color: "#3d5a3d",
               textAlign: "center",
               textShadow: "0 2px 4px rgba(143, 170, 150, 0.1)"
             }}>
               ✨ Recent Magical Conversions
             </h2>
-            
-            <div style={{ 
-              border: "2px solid #d4d9c7", 
-              borderRadius: 20, 
+
+            <div style={{
+              border: "2px solid #d4d9c7",
+              borderRadius: 20,
               background: "linear-gradient(135deg, #fdfcf8 0%, #f0f4f1 100%)",
               overflow: "hidden",
               boxShadow: "inset 0 2px 4px rgba(143, 170, 150, 0.1)"
             }}>
               {recentConversions.map((conversion, index) => (
-                <div 
-                  key={conversion.id} 
-                  style={{ 
-                    padding: 24, 
+                <div
+                  key={conversion.id}
+                  style={{
+                    padding: 24,
                     borderBottom: index < recentConversions.length - 1 ? "2px solid #e8f2ea" : "none",
                     transition: "all 0.3s ease",
                     position: "relative"
@@ -829,9 +829,9 @@ Status: Loaded and active`)
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 20 }}>
                     <div style={{ flex: 1 }}>
-                      <div className="clean-text" style={{ 
-                        fontSize: 14, 
-                        color: "#6b7c6b", 
+                      <div className="clean-text" style={{
+                        fontSize: 14,
+                        color: "#6b7c6b",
                         marginBottom: 12,
                         fontWeight: "500",
                         display: "flex",
@@ -841,8 +841,8 @@ Status: Loaded and active`)
                         <span style={{ fontSize: 16 }}>🕐</span>
                         {formatDate(conversion.timestamp)} • {conversion.program}
                       </div>
-                      <div className="clean-text" style={{ 
-                        fontSize: 13, 
+                      <div className="clean-text" style={{
+                        fontSize: 13,
                         wordBreak: "break-all",
                         color: "#3d5a3d",
                         fontFamily: "Monaco, Consolas, 'Courier New', monospace",
@@ -856,10 +856,10 @@ Status: Loaded and active`)
                         {conversion.originalUrl}
                       </div>
                     </div>
-                    <div style={{ 
-                      background: "linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%)", 
-                      color: "#2f5233", 
-                      padding: "10px 18px", 
+                    <div style={{
+                      background: "linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%)",
+                      color: "#2f5233",
+                      padding: "10px 18px",
                       borderRadius: 50,
                       fontSize: 13,
                       fontWeight: "600",
@@ -884,10 +884,10 @@ Status: Loaded and active`)
         {user && <Dashboard user={user} />}
 
         {/* Test Authentication Section (for debugging) */}
-        <div style={{ 
-          marginTop: 40, 
-          padding: 32, 
-          background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)", 
+        <div style={{
+          marginTop: 40,
+          padding: 32,
+          background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)",
           borderRadius: 24,
           border: "2px solid #d4d9c7",
           boxShadow: "inset 0 2px 4px rgba(143, 170, 150, 0.1)",
@@ -910,18 +910,18 @@ Status: Loaded and active`)
             opacity: 0.15,
             transform: "rotate(-15deg)"
           }}>🧰</div>
-          
-          <h2 className="storybook-text" style={{ 
-            fontSize: 28, 
-            marginBottom: 16, 
-            fontWeight: "600", 
+
+          <h2 className="storybook-text" style={{
+            fontSize: 28,
+            marginBottom: 16,
+            fontWeight: "600",
             color: "#3d5a3d",
             textAlign: "center",
             textShadow: "0 2px 4px rgba(143, 170, 150, 0.1)"
           }}>
             🔧 Test Authentication (Debugging)
           </h2>
-          
+
           <div style={{ marginBottom: 24, textAlign: "center" }}>
             <button
               onClick={testAuthentication}
@@ -952,11 +952,11 @@ Status: Loaded and active`)
               🧪 Test Auth
             </button>
           </div>
-          
+
           {/* Test results display */}
-          <div className="clean-text" style={{ 
-            fontSize: 14, 
-            color: "#3d5a3d", 
+          <div className="clean-text" style={{
+            fontSize: 14,
+            color: "#3d5a3d",
             background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)",
             padding: "16px",
             borderRadius: 12,
