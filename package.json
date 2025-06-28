@@ -61,7 +61,7 @@
     },
     "web_accessible_resources": [
       {
-        "resources": ["*.js", "*.css", "*.html"],
+        "resources": ["*.js", "*.css", "*.html", "src/test-auth.html", "src/test-firebase-auth.js", "src/offscreen-auth.html", "src/offscreen-auth.js"],
         "matches": ["<all_urls>"]
       }
     ]

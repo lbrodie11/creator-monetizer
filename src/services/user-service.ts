@@ -1,10 +1,10 @@
 
-import { 
-  signInWithPopup,
-  GoogleAuthProvider, 
-  signOut as firebaseSignOut,
-  type User as FirebaseUser
-} from "firebase/auth"
+import {
+  getAuth,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+} from "firebase/auth/web-extension"
+import type { User as FirebaseUser } from "firebase/auth"
 import { 
   doc, 
   getDoc, 
@@ -33,78 +33,76 @@ export class UserService {
   }
 
   async signInWithGoogle(): Promise<User> {
-    try {
-      // For Chrome extensions, redirect to options page for authentication
-      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
-        // Close popup and open options page for auth
-        chrome.runtime.openOptionsPage()
-        
-        // Return a promise that resolves when auth completes
-        return new Promise((resolve, reject) => {
-          // Listen for auth completion message
-          const onMessage = (message: any) => {
-            if (message.type === 'AUTH_SUCCESS') {
-              chrome.runtime.onMessage.removeListener(onMessage)
-              this.currentUser = message.user
-              resolve(message.user)
-            } else if (message.type === 'AUTH_ERROR') {
-              chrome.runtime.onMessage.removeListener(onMessage)
-              reject(new Error(message.error))
-            }
-          }
-          
-          chrome.runtime.onMessage.addListener(onMessage)
-          
-          // Timeout after 5 minutes
-          setTimeout(() => {
-            chrome.runtime.onMessage.removeListener(onMessage)
-            reject(new Error('Authentication timeout'))
-          }, 300000)
-        })
-      } else {
-        throw new Error("Google Sign-In is only supported in Chrome extension environment")
+    return new Promise((resolve, reject) => {
+      // Request background script to handle authentication
+      chrome.runtime.sendMessage({ action: "SIGN_IN_GOOGLE" }, (response) => {
+        if (!response?.success) {
+          reject(new Error("Failed to initiate authentication"))
+          return
+        }
+      })
+
+      // Listen for authentication result
+      const messageListener = (message: any) => {
+        if (message.type === "AUTH_SUCCESS") {
+          chrome.runtime.onMessage.removeListener(messageListener)
+          this.handleAuthenticatedUser(message.user)
+            .then(resolve)
+            .catch(reject)
+        } else if (message.type === "AUTH_ERROR") {
+          chrome.runtime.onMessage.removeListener(messageListener)
+          reject(new Error(message.error))
+        }
       }
-    } catch (error) {
-      console.error("Error signing in with Google:", error)
-      throw error
-    }
+
+      chrome.runtime.onMessage.addListener(messageListener)
+    })
   }
 
-  // Method to be called from options page
-  async signInWithGoogleOnOptionsPage(): Promise<User> {
-    try {
-      const provider = new GoogleAuthProvider()
-      provider.setCustomParameters({
-        prompt: 'select_account'
+  async checkAuthState(): Promise<User | null> {
+    return new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        unsubscribe()
+        if (firebaseUser) {
+          try {
+            const user = await this.handleAuthenticatedUser(firebaseUser)
+            resolve(user)
+          } catch (error) {
+            console.error("Error loading user:", error)
+            resolve(null)
+          }
+        } else {
+          this.currentUser = null
+          resolve(null)
+        }
       })
-      
-      // Use popup auth which is supported in web-extension module
-      const result = await signInWithPopup(auth, provider)
-      const user = await this.handleAuthenticatedUser(result.user)
-      
-      // Notify popup that auth completed
-      if (chrome?.runtime?.sendMessage) {
-        chrome.runtime.sendMessage({
-          type: 'AUTH_SUCCESS',
-          user: user
-        })
+    })
+  }
+
+  async signOut(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Request background script to handle sign out
+      chrome.runtime.sendMessage({ action: "SIGN_OUT_GOOGLE" }, (response) => {
+        if (!response?.success) {
+          reject(new Error("Failed to initiate sign out"))
+          return
+        }
+      })
+
+      // Listen for sign out result
+      const messageListener = (message: any) => {
+        if (message.type === "SIGN_OUT_SUCCESS") {
+          chrome.runtime.onMessage.removeListener(messageListener)
+          this.currentUser = null
+          resolve()
+        } else if (message.type === "SIGN_OUT_ERROR") {
+          chrome.runtime.onMessage.removeListener(messageListener)
+          reject(new Error(message.error))
+        }
       }
-      
-      return user
-      
-    } catch (error) {
-      console.error("Error signing in with Google:", error)
-      
-      // Notify popup that auth failed
-      if (chrome?.runtime?.sendMessage) {
-        chrome.runtime.sendMessage({
-          type: 'AUTH_ERROR',
-          error: error.message
-        })
-      }
-      
-      throw error
-    }
+
+      chrome.runtime.onMessage.addListener(messageListener)
+    })
   }
 
   private async handleAuthenticatedUser(firebaseUser: FirebaseUser): Promise<User> {
@@ -130,36 +128,6 @@ export class UserService {
       const userData = userDoc.data() as User
       this.currentUser = userData
       return userData
-    }
-  }
-
-  async checkAuthState(): Promise<User | null> {
-    return new Promise((resolve) => {
-      // Check normal auth state using web-extension module
-      const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-        unsubscribe()
-        if (firebaseUser) {
-          try {
-            const user = await this.handleAuthenticatedUser(firebaseUser)
-            resolve(user)
-          } catch (error) {
-            console.error("Error loading user:", error)
-            resolve(null)
-          }
-        } else {
-          resolve(null)
-        }
-      })
-    })
-  }
-
-  async signOut(): Promise<void> {
-    try {
-      await firebaseSignOut(auth)
-      this.currentUser = null
-    } catch (error) {
-      console.error("Error signing out:", error)
-      throw error
     }
   }
 

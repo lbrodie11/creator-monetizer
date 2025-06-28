@@ -35,16 +35,9 @@ export const useUser = () => {
       setError(null)
       
       const userService = UserService.getInstance()
-      let signedInUser: User
       
-      // Check if we're on the options page
-      if (window.location.pathname.includes('options.html')) {
-        // Use popup auth on options page
-        signedInUser = await userService.signInWithGoogleOnOptionsPage()
-      } else {
-        // Use tab redirect method from popup
-        signedInUser = await userService.signInWithGoogle()
-      }
+      // Use the simplified Firebase popup sign-in
+      const signedInUser = await userService.signInWithGoogle()
       
       setUser(signedInUser)
       return signedInUser

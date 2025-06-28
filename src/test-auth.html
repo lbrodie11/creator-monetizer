@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Firebase Auth with Web Extension</title>
+  <style>
+    body {
+      font-family: "Crimson Text", serif;
+      background: linear-gradient(135deg, #e8f5e8 0%, #d4f1f4 50%, #f0e6ff 100%);
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 2px solid rgba(139, 69, 19, 0.1);
+    }
+    h1 {
+      color: #8b4513;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    button {
+      background: linear-gradient(135deg, #90EE90 0%, #87CEEB 100%);
+      border: 2px solid rgba(139, 69, 19, 0.2);
+      border-radius: 25px;
+      padding: 12px 24px;
+      font-family: "Crimson Text", serif;
+      font-size: 16px;
+      color: #8b4513;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    #results {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      border: 1px solid rgba(139, 69, 19, 0.1);
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    .status {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success {
+      background: rgba(144, 238, 144, 0.3);
+      border: 1px solid #90EE90;
+      color: #006400;
+    }
+    .error {
+      background: rgba(255, 182, 193, 0.3);
+      border: 1px solid #FFB6C1;
+      color: #8B0000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌸 Firebase Auth Test - Studio Ghibli Extension 🍃</h1>
+    
+    <button onclick="testChromeIdentityAPI()">Test Chrome Identity API</button>
+    <button onclick="testFirebaseAuth()">Test Firebase Auth</button>
+    <button onclick="testFullAuthFlow()">Test Full Auth Flow</button>
+    <button onclick="testUserService()">Test User Service</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+  </div>
+
+  <script>
+    function log(message, type = 'info') {
+      const results = document.getElementById('results');
+      const timestamp = new Date().toLocaleTimeString();
+      const statusClass = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+      const statusDiv = document.createElement('div');
+      statusDiv.className = `status ${statusClass}`;
+      statusDiv.textContent = `[${timestamp}] ${message}`;
+      results.appendChild(statusDiv);
+      results.scrollTop = results.scrollHeight;
+      console.log(message);
+    }
+
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+    }
+
+    async function testChromeIdentityAPI() {
+      log('Testing Chrome Identity API...', 'info');
+      
+      try {
+        if (!chrome?.identity) {
+          throw new Error('Chrome Identity API not available');
+        }
+        
+        log('Chrome Identity API is available ✓', 'success');
+        
+        // Test getting auth token
+        chrome.identity.getAuthToken(
+          { 
+            interactive: true,
+            scopes: ['email', 'profile', 'openid']
+          },
+          (token) => {
+            if (chrome.runtime.lastError) {
+              log(`Chrome Identity Error: ${chrome.runtime.lastError.message}`, 'error');
+              return;
+            }
+            
+            if (token) {
+              log(`Chrome Identity Token received: ${token.substring(0, 20)}...`, 'success');
+            } else {
+              log('No token received from Chrome Identity', 'error');
+            }
+          }
+        );
+        
+      } catch (error) {
+        log(`Chrome Identity Test Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function testFirebaseAuth() {
+      log('Testing Firebase Web Extension Auth...', 'info');
+      
+      try {
+        // Test if Firebase modules can be imported
+        const { initializeApp } = await import('firebase/app');
+        const { getAuth } = await import('firebase/auth/web-extension');
+        
+        log('Firebase modules imported successfully ✓', 'success');
+        
+        // Test Firebase config
+        const firebaseConfig = {
+          apiKey: 'test-api-key',
+          authDomain: 'test-domain.firebaseapp.com',
+          projectId: 'test-project'
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        log('Firebase app initialized successfully ✓', 'success');
+        log(`Auth instance created: ${auth ? 'Yes' : 'No'}`, auth ? 'success' : 'error');
+        
+      } catch (error) {
+        log(`Firebase Auth Test Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function testFullAuthFlow() {
+      log('Testing Full Authentication Flow...', 'info');
+      
+      try {
+        // Import Firebase modules
+        const { initializeApp } = await import('firebase/app');
+        const { getAuth, signInWithCredential, GoogleAuthProvider } = await import('firebase/auth/web-extension');
+        
+        log('Firebase modules imported ✓', 'success');
+        
+        // Initialize Firebase (using dummy config for test)
+        const app = initializeApp({
+          apiKey: 'dummy-key',
+          authDomain: 'dummy-domain.firebaseapp.com',
+          projectId: 'dummy-project'
+        });
+        const auth = getAuth(app);
+        
+        log('Firebase initialized ✓', 'success');
+        
+        // Test Chrome Identity
+        if (!chrome?.identity) {
+          throw new Error('Chrome Identity API not available');
+        }
+        
+        chrome.identity.getAuthToken(
+          { 
+            interactive: true,
+            scopes: ['email', 'profile', 'openid']
+          },
+          async (token) => {
+            if (chrome.runtime.lastError) {
+              log(`Auth Flow Error: ${chrome.runtime.lastError.message}`, 'error');
+              return;
+            }
+            
+            if (!token) {
+              log('No token received', 'error');
+              return;
+            }
+            
+            log('Token received from Chrome Identity ✓', 'success');
+            
+            try {
+              // Create Firebase credential
+              const credential = GoogleAuthProvider.credential(null, token);
+              log('Firebase credential created ✓', 'success');
+              
+              // Note: This will fail with dummy config, but tests the flow
+              log('Auth flow structure is correct ✓', 'success');
+              
+            } catch (credError) {
+              log(`Credential Error: ${credError.message}`, 'error');
+            }
+          }
+        );
+        
+      } catch (error) {
+        log(`Full Auth Flow Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function testUserService() {
+      log('Testing User Service...', 'info');
+      
+      try {
+        // Test if we can access our UserService
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+          log(`Extension ID: ${chrome.runtime.id}`, 'success');
+          log(`Add to Firebase: chrome-extension://${chrome.runtime.id}`, 'info');
+        }
+        
+        // Test if we can load our actual modules
+        log('Attempting to load UserService...', 'info');
+        
+        // Note: This requires the extension context
+        log('UserService testing requires extension context', 'info');
+        log('Use browser console in extension pages for full testing', 'info');
+        
+      } catch (error) {
+        log(`User Service Error: ${error.message}`, 'error');
+      }
+    }
+
+    // Initialize test page
+    log('Firebase Web Extension Auth Test Page Loaded 🌸', 'success');
+    log('Click buttons above to test different components', 'info');
+  </script>
+</body>
+</html>

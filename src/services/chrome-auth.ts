@@ -1,4 +1,5 @@
-import { signInWithCustomToken, type User as FirebaseUser } from "firebase/auth"
+import { signInWithCustomToken } from "firebase/auth/web-extension"
+import type { User as FirebaseUser } from "firebase/auth"
 import { auth } from "./firebase-config"
 
 export class ChromeAuthService {

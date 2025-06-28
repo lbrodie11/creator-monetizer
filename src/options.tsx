@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import { UserService } from "~src/services/user-service"
 import { AFFILIATE_PROGRAMS } from "~src/config/affiliate-programs"
@@ -15,6 +14,7 @@ function OptionsPage() {
   const [saveMessage, setSaveMessage] = useState("")
   const [recentConversions, setRecentConversions] = useState<LinkConversion[]>([])
   const [validationErrors, setValidationErrors] = useState<Record<string, ValidationResult>>({})
+  const [testResults, setTestResults] = useState<string>("")
 
   // Add Studio Ghibli-inspired custom styles
   useEffect(() => {
@@ -163,6 +163,78 @@ function OptionsPage() {
     return new Date(timestamp).toLocaleDateString() + " " + new Date(timestamp).toLocaleTimeString()
   }
 
+  // Test authentication function
+  const testAuthentication = async () => {
+    setTestResults("🧪 Testing authentication flow...")
+    
+    try {
+      // Test Chrome Identity API
+      if (!chrome?.identity) {
+        setTestResults("❌ Chrome Identity API not available")
+        return
+      }
+      
+      setTestResults("✅ Chrome Identity API available\n🧪 Testing configuration...")
+      
+      // Test Firebase config first
+      const firebaseConfig = {
+        apiKey: process.env.PLASMO_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.PLASMO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.PLASMO_PUBLIC_FIREBASE_PROJECT_ID
+      }
+      
+      setTestResults(prev => prev + `\n\n🔧 Firebase Configuration:
+Project ID: ${firebaseConfig.projectId}
+Auth Domain: ${firebaseConfig.authDomain}
+API Key: ${firebaseConfig.apiKey ? '✅ Present' : '❌ Missing'}`)
+      
+      // Test extension setup
+      if (chrome.runtime.id) {
+        setTestResults(prev => prev + `\n\n🆔 Extension Details:
+Extension ID: ${chrome.runtime.id}
+Status: Loaded and active`)
+        
+        // Add corrected setup instructions
+        setTestResults(prev => prev + `\n\n🔧 SETUP REQUIRED (If authentication fails):
+        
+1️⃣ Firebase Console - Add Extension Domain:
+   • Go to: https://console.firebase.google.com/project/creator-monetizer
+   • Navigate: Authentication → Settings → Authorized domains
+   • Click 'Add domain'
+   • Add: chrome-extension://${chrome.runtime.id}
+   • Save changes
+   
+2️⃣ Verify Google Provider:
+   • Go to: Authentication → Sign-in method
+   • Ensure Google provider is enabled
+   
+❌ DO NOT add chrome-extension:// to Google Cloud Console!
+✅ ONLY add it to Firebase authorized domains!`)
+      }
+      
+      // Test token retrieval
+      setTestResults(prev => prev + "\n\n🔍 Testing token retrieval...")
+      
+      chrome.identity.getAuthToken({
+        interactive: false,
+        scopes: ['email', 'profile', 'openid']
+      }, (token) => {
+        if (chrome.runtime.lastError) {
+          setTestResults(prev => prev + "\n⚠️ No cached token available")
+          setTestResults(prev => prev + `\nNote: ${chrome.runtime.lastError.message}`)
+          setTestResults(prev => prev + "\n\n💡 This is normal for first-time setup!")
+          setTestResults(prev => prev + "\n   Try 'Sign in with Google' button after domain setup.")
+        } else if (token) {
+          setTestResults(prev => prev + "\n✅ Cached token found!")
+          setTestResults(prev => prev + "\n🎉 Authentication should work properly!")
+        }
+      })
+      
+    } catch (error) {
+      setTestResults(`❌ Test error: ${error.message}`)
+    }
+  }
+
   if (isLoading) {
     return (
       <div style={{ padding: 32, textAlign: "center" }}>
@@ -308,6 +380,44 @@ function OptionsPage() {
               >
                 🌟 Sign in with Google
               </button>
+              
+              {/* Test Authentication Button */}
+              <div style={{ marginTop: 24 }}>
+                <button
+                  onClick={testAuthentication}
+                  style={{
+                    background: "linear-gradient(135deg, #e8f2ea 0%, #d4d9c7 100%)",
+                    color: "#5a6b5a",
+                    border: "2px solid #a8bfaa",
+                    padding: "12px 24px",
+                    borderRadius: 25,
+                    cursor: "pointer",
+                    fontSize: 14,
+                    fontWeight: "500",
+                    fontFamily: "'Inter', sans-serif",
+                    transition: "all 0.3s ease",
+                    marginRight: 12
+                  }}
+                >
+                  🧪 Test Authentication
+                </button>
+                {testResults && (
+                  <div style={{
+                    marginTop: 16,
+                    padding: 16,
+                    background: "rgba(255, 255, 255, 0.9)",
+                    borderRadius: 12,
+                    border: "1px solid #d4d9c7",
+                    textAlign: "left",
+                    fontSize: 12,
+                    fontFamily: "monospace",
+                    whiteSpace: "pre-wrap",
+                    color: "#5a6b5a"
+                  }}>
+                    {testResults}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div style={{ 
@@ -772,6 +882,94 @@ function OptionsPage() {
 
         {/* Dashboard Component */}
         {user && <Dashboard user={user} />}
+
+        {/* Test Authentication Section (for debugging) */}
+        <div style={{ 
+          marginTop: 40, 
+          padding: 32, 
+          background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)", 
+          borderRadius: 24,
+          border: "2px solid #d4d9c7",
+          boxShadow: "inset 0 2px 4px rgba(143, 170, 150, 0.1)",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            position: "absolute",
+            top: "20px",
+            right: "20px",
+            fontSize: "28px",
+            opacity: 0.15,
+            transform: "rotate(15deg)"
+          }}>🔧</div>
+          <div style={{
+            position: "absolute",
+            bottom: "20px",
+            left: "20px",
+            fontSize: "24px",
+            opacity: 0.15,
+            transform: "rotate(-15deg)"
+          }}>🧰</div>
+          
+          <h2 className="storybook-text" style={{ 
+            fontSize: 28, 
+            marginBottom: 16, 
+            fontWeight: "600", 
+            color: "#3d5a3d",
+            textAlign: "center",
+            textShadow: "0 2px 4px rgba(143, 170, 150, 0.1)"
+          }}>
+            🔧 Test Authentication (Debugging)
+          </h2>
+          
+          <div style={{ marginBottom: 24, textAlign: "center" }}>
+            <button
+              onClick={testAuthentication}
+              className="nature-accent"
+              style={{
+                color: "white",
+                border: "none",
+                padding: "12px 28px",
+                borderRadius: 50,
+                cursor: "pointer",
+                fontSize: 16,
+                fontWeight: "600",
+                fontFamily: "'Inter', sans-serif",
+                boxShadow: "0 8px 24px rgba(143, 170, 150, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
+                transition: "all 0.3s ease",
+                position: "relative",
+                overflow: "hidden"
+              }}
+              onMouseOver={(e) => {
+                (e.target as HTMLButtonElement).style.transform = "translateY(-3px) scale(1.02)";
+                (e.target as HTMLButtonElement).style.boxShadow = "0 12px 32px rgba(143, 170, 150, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4)";
+              }}
+              onMouseOut={(e) => {
+                (e.target as HTMLButtonElement).style.transform = "translateY(0) scale(1)";
+                (e.target as HTMLButtonElement).style.boxShadow = "0 8px 24px rgba(143, 170, 150, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)";
+              }}
+            >
+              🧪 Test Auth
+            </button>
+          </div>
+          
+          {/* Test results display */}
+          <div className="clean-text" style={{ 
+            fontSize: 14, 
+            color: "#3d5a3d", 
+            background: "linear-gradient(135deg, #f0f4f1 0%, #e8f2ea 100%)",
+            padding: "16px",
+            borderRadius: 12,
+            border: "2px solid #d4d9c7",
+            boxShadow: "inset 0 2px 4px rgba(143, 170, 150, 0.1)",
+            whiteSpace: "pre-wrap",
+            maxHeight: 200,
+            overflowY: "auto",
+            marginTop: 16
+          }}>
+            {testResults}
+          </div>
+        </div>
       </div>
     </div>
   )
